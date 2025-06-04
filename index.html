@@ -9,6 +9,11 @@
       font-family: Arial, sans-serif;
       background: #f0fcfc;
     }
+    h3 {
+      color:#009688;
+      margin-bottom: 0.5em;
+      margin-top: 1em;
+    }
     .search-bar {
       margin-bottom: 8px;
       display: flex;
@@ -34,6 +39,9 @@
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(100,181,183,0.08);
       margin-bottom: 12px;
+      /* For sticky header to work: set relative position and max-height */
+      position: relative;
+      max-height: 400px;
     }
     table {
       border-collapse: separate;
@@ -60,6 +68,17 @@
       top: 0;
       z-index: 2;
       border-bottom: 2px solid #64b5b7;
+    }
+    .sort-icon {
+      font-size: 12px;
+      margin-left: 4px;
+      color: #ff9800; /* Orange for contrast */
+      vertical-align: middle;
+      font-weight: bold;
+    }
+    .sort-icon.inactive {
+      color: #bdbdbd; /* Grey for inactive */
+      font-weight: normal;
     }
     .hidden-col {
       display: none;
@@ -101,6 +120,7 @@
         min-width: 0;
         border-radius: 0;
         box-shadow: none;
+        max-height: 270px;
       }
       table {
         font-size: 11px;
@@ -130,7 +150,7 @@
   </style>
 </head>
 <body>
-  <h3 style="color:#009688;">Pemasukan</h3>
+  <h3>Pemasukan</h3>
   <div class="search-bar">
     <input type="text" id="search" placeholder="Cari di semua kolom...">
     <label for="rowsPerPage">Baris/hal:</label>
@@ -164,12 +184,25 @@
       const headRow = document.createElement('tr');
       filteredData[0].forEach((cell, i) => {
         const th = document.createElement('th');
-        th.textContent = cell;
         // Kolom sort hanya index 1 (ke-2), 4 (ke-5), 5 (ke-6)
-        if ([1,4,5].includes(i)) {
+        let sortable = [1,4,5].includes(i);
+        th.textContent = cell;
+        if (sortable) {
+          th.style.userSelect = "none";
           th.onclick = () => sortTable(i);
           th.title = "Klik untuk sort";
-          if (sortCol === i) th.textContent += sortDir === 1 ? " ▲" : " ▼";
+          let upClass = "sort-icon inactive";
+          let downClass = "sort-icon inactive";
+          if (sortCol === i && sortDir === 1) upClass = "sort-icon";
+          if (sortCol === i && sortDir === -1) downClass = "sort-icon";
+          const up = document.createElement('span');
+          up.className = upClass;
+          up.innerHTML = "▲";
+          const down = document.createElement('span');
+          down.className = downClass;
+          down.innerHTML = "▼";
+          th.appendChild(up);
+          th.appendChild(down);
         }
         // Sembunyikan kolom ke-1 (0) dan ke-8 (7)
         if (i === 0 || i === 7) th.classList.add('hidden-col');
