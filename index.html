@@ -7,17 +7,32 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #ecf7f7;
+      background: #f0fcfc;
     }
     .search-bar {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .search-bar input, .search-bar select {
+      font-size: 12px;
+      padding: 3px 6px;
+      border: 1px solid #64b5b7;
+      border-radius: 2px;
+      background: #e6f8f8;
+    }
+    .search-bar label {
+      font-size: 12px;
+      color: #00695c;
     }
     .table-container {
       overflow-x: auto;
       max-width: 100vw;
-      background: #e0f7fa;
+      background: #e6f8f8;
       border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,150,136,0.10);
+      box-shadow: 0 2px 8px rgba(100,181,183,0.08);
       margin-bottom: 12px;
     }
     table {
@@ -25,7 +40,7 @@
       border-spacing: 0;
       width: 100%;
       min-width: 600px;
-      background: #e0f7fa;
+      background: #e6f8f8;
       font-size: 12px;
       color: #222;
       margin: 0;
@@ -36,23 +51,24 @@
       text-align: left;
     }
     th {
-      background: #009688;
-      color: #fff;
+      background: #7be3e6;
+      color: #00695c;
       cursor: pointer;
       user-select: none;
       font-size: 13px;
       position: sticky;
       top: 0;
       z-index: 2;
+      border-bottom: 2px solid #64b5b7;
     }
     .hidden-col {
       display: none;
     }
     tr:nth-child(even) td {
-      background-color: #d2f5f5;
+      background-color: #def7f8;
     }
     tr:nth-child(odd) td {
-      background-color: #e0f7fa;
+      background-color: #e6f8f8;
     }
     .pagination {
       margin-top: 8px;
@@ -61,30 +77,24 @@
       color: #00796b;
     }
     .pagination button {
-      background: #009688;
-      color: #fff;
+      background: #7be3e6;
+      color: #00695c;
       border: none;
       margin: 0 2px;
       padding: 2px 8px;
       border-radius: 2px;
       cursor: pointer;
       font-size: 12px;
+      transition: background 0.2s;
     }
     .pagination button.active {
-      background: #004d40;
+      background: #4ed9df;
+      color: #004d40;
     }
     .pagination button:disabled {
       background: #b2dfdb;
       color: #888;
       cursor: not-allowed;
-    }
-    .search-bar input {
-      font-size: 12px;
-      padding: 3px 6px;
-      border: 1.5px solid #009688;
-      border-radius: 2px;
-      width: 240px;
-      margin-right: 10px;
     }
     @media (max-width: 700px) {
       .table-container {
@@ -96,7 +106,7 @@
         font-size: 11px;
         min-width: 400px;
       }
-      .search-bar input {
+      .search-bar input, .search-bar select {
         width: 98vw;
         margin-bottom: 6px;
       }
@@ -113,7 +123,6 @@
         padding: 4px 4px;
       }
     }
-    /* Remove the blue highlight for sticky header on mobile Safari */
     th {
       -webkit-backdrop-filter: blur(0);
       backdrop-filter: blur(0);
@@ -121,9 +130,18 @@
   </style>
 </head>
 <body>
-  <h3 style="color:#00695c;">Pemasukan</h3>
+  <h3 style="color:#009688;">Pemasukan</h3>
   <div class="search-bar">
     <input type="text" id="search" placeholder="Cari di semua kolom...">
+    <label for="rowsPerPage">Baris/hal:</label>
+    <select id="rowsPerPage">
+      <option value="5">5</option>
+      <option value="8" selected>8</option>
+      <option value="10">10</option>
+      <option value="15">15</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+    </select>
   </div>
   <div class="table-container">
     <table id="csvTable"></table>
@@ -133,14 +151,7 @@
   <script>
     // Konfigurasi
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQBSWp7dBKus6wO8G-vBtSW9ZpKlRbmNLbXsaWQZeaQU_ZEY9p9EujIGTyIPVzb5cgVTlq9d0Lf29P/pub?gid=1413460683&single=true&output=csv";
-    const rowsPerPage = 8; // Jumlah baris per halaman
-
-    // Index kolom (0-based):
-    // Kolom ke-1: index 0 (hidden)
-    // Kolom ke-2: index 1 (sort)
-    // Kolom ke-5: index 4 (sort)
-    // Kolom ke-6: index 5 (sort)
-    // Kolom ke-8: index 7 (hidden)
+    let rowsPerPage = 8;
     let tableData = [], filteredData = [], sortCol = null, sortDir = 1, currentPage = 1;
 
     function renderTable() {
@@ -191,7 +202,7 @@
 
     function renderPagination() {
       const totalRows = filteredData.length - 1; // header tidak dihitung
-      const totalPages = Math.ceil(totalRows / rowsPerPage);
+      const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
       const pag = document.getElementById('pagination');
       pag.innerHTML = '';
       if (totalPages <= 1) return;
@@ -251,6 +262,12 @@
     // Event: search
     document.getElementById('search').addEventListener('input', function() {
       filterData(this.value);
+      currentPage = 1;
+      renderTable();
+    });
+
+    document.getElementById('rowsPerPage').addEventListener('change', function() {
+      rowsPerPage = parseInt(this.value, 10);
       currentPage = 1;
       renderTable();
     });
