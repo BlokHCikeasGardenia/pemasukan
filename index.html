@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Pemasukan</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+  <h2>Pemasukan</h2>
+  <table id="csvTable"></table>
+
+  <!-- PapaParse CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQBSWp7dBKus6wO8G-vBtSW9ZpKlRbmNLbXsaWQZeaQU_ZEY9p9EujIGTyIPVzb5cgVTlq9d0Lf29P/pub?gid=1413460683&single=true&output=csv";
+    fetch(url)
+      .then(response => response.text())
+      .then(csvText => {
+        Papa.parse(csvText, {
+          header: false,
+          complete: function(results) {
+            const rows = results.data;
+            const table = document.getElementById('csvTable');
+            table.innerHTML = '';
+            
+            // Buat header
+            if (rows.length > 0) {
+              const thead = document.createElement('thead');
+              const headerRow = document.createElement('tr');
+              rows[0].forEach(cell => {
+                const th = document.createElement('th');
+                th.textContent = cell;
+                headerRow.appendChild(th);
+              });
+              thead.appendChild(headerRow);
+              table.appendChild(thead);
+            }
+            
+            // Buat body
+            const tbody = document.createElement('tbody');
+            for (let i = 1; i < rows.length; i++) {
+              // PapaParse bisa return row kosong di akhir, skip jika semua kolom kosong
+              if (rows[i].every(cell => cell === "")) continue;
+              const tr = document.createElement('tr');
+              rows[i].forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+              });
+              tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+          }
+        });
+      });
+  </script>
+</body>
+</html>
