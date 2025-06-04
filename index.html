@@ -2,58 +2,213 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Pemasukan</title>
+  <title>Tabel Google Sheet CSV dengan Fitur Lengkap</title>
   <style>
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background: #eee; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #ecf7f7;
+    }
+    .search-bar {
+      margin-bottom: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #e0f7fa;
+      font-size: 12px;
+      color: #222;
+    }
+    th, td {
+      border: 2px solid #009688;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    th {
+      background: #009688;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+      font-size: 13px;
+    }
+    .hidden-col {
+      display: none;
+    }
+    .pagination {
+      margin-top: 8px;
+      text-align: right;
+      font-size: 12px;
+      color: #00796b;
+    }
+    .pagination button {
+      background: #009688;
+      color: #fff;
+      border: none;
+      margin: 0 2px;
+      padding: 2px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .pagination button.active {
+      background: #004d40;
+    }
+    .pagination button:disabled {
+      background: #b2dfdb;
+      color: #888;
+      cursor: not-allowed;
+    }
+    .search-bar input {
+      font-size: 12px;
+      padding: 3px 6px;
+      border: 1.5px solid #009688;
+      border-radius: 2px;
+      width: 240px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
-  <h2>Pemasukan</h2>
+  <h3 style="color:#00695c;">Data dari Google Spreadsheet</h3>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Cari di semua kolom...">
+  </div>
   <table id="csvTable"></table>
-
-  <!-- PapaParse CDN -->
+  <div class="pagination" id="pagination"></div>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQBSWp7dBKus6wO8G-vBtSW9ZpKlRbmNLbXsaWQZeaQU_ZEY9p9EujIGTyIPVzb5cgVTlq9d0Lf29P/pub?gid=1413460683&single=true&output=csv";
-    fetch(url)
-      .then(response => response.text())
+    // Konfigurasi
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQBSWp7dBKus6wO8G-vBtSW9ZpKlRbmNLbXsaWQZeaQU_ZEY9p9EujIGTyIPVzb5cgVTlq9d0Lf29P/pub?gid=1413460683&single=true&output=csv";
+    const rowsPerPage = 8; // Jumlah baris per halaman
+
+    // Index kolom (0-based):
+    // Kolom ke-1: index 0 (hidden)
+    // Kolom ke-2: index 1 (sort)
+    // Kolom ke-5: index 4 (sort)
+    // Kolom ke-6: index 5 (sort)
+    // Kolom ke-8: index 7 (hidden)
+    let tableData = [], filteredData = [], sortCol = null, sortDir = 1, currentPage = 1;
+
+    function renderTable() {
+      const table = document.getElementById('csvTable');
+      table.innerHTML = '';
+      if (!filteredData.length) return;
+
+      // Header
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      filteredData[0].forEach((cell, i) => {
+        const th = document.createElement('th');
+        th.textContent = cell;
+        // Kolom sort hanya index 1 (ke-2), 4 (ke-5), 5 (ke-6)
+        if ([1,4,5].includes(i)) {
+          th.onclick = () => sortTable(i);
+          th.title = "Klik untuk sort";
+          if (sortCol === i) th.textContent += sortDir === 1 ? " ▲" : " ▼";
+        }
+        // Sembunyikan kolom ke-1 (0) dan ke-8 (7)
+        if (i === 0 || i === 7) th.classList.add('hidden-col');
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      // Body
+      const tbody = document.createElement('tbody');
+      // Pagination
+      const startIdx = (currentPage - 1) * rowsPerPage + 1; // +1 karena header
+      const endIdx = Math.min(startIdx + rowsPerPage - 1, filteredData.length -1);
+      for (let i = startIdx; i <= endIdx; i++) {
+        const row = filteredData[i];
+        if (!row) continue;
+        const tr = document.createElement('tr');
+        row.forEach((cell, j) => {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          if (j === 0 || j === 7) td.classList.add('hidden-col');
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const totalRows = filteredData.length - 1; // header tidak dihitung
+      const totalPages = Math.ceil(totalRows / rowsPerPage);
+      const pag = document.getElementById('pagination');
+      pag.innerHTML = '';
+      if (totalPages <= 1) return;
+      // Tombol prev
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = "Prev";
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => { currentPage--; renderTable(); };
+      pag.appendChild(prevBtn);
+
+      // Tombol halaman
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.onclick = () => { currentPage = i; renderTable(); };
+        pag.appendChild(btn);
+      }
+      // Tombol next
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = "Next";
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => { currentPage++; renderTable(); };
+      pag.appendChild(nextBtn);
+    }
+
+    function sortTable(colIdx) {
+      // Sort pada body data (tanpa header)
+      if (sortCol === colIdx) sortDir *= -1;
+      else { sortCol = colIdx; sortDir = 1; }
+      filteredData = [filteredData[0]].concat(
+        filteredData.slice(1).sort((a, b) => {
+          let x = a[colIdx] || '', y = b[colIdx] || '';
+          // Coba sort numerik jika mungkin
+          let nx = parseFloat(x), ny = parseFloat(y);
+          if (!isNaN(nx) && !isNaN(ny)) return (nx - ny) * sortDir;
+          return x.localeCompare(y, 'id', {sensitivity:'base'}) * sortDir;
+        })
+      );
+      currentPage = 1;
+      renderTable();
+    }
+
+    function filterData(keyword) {
+      keyword = keyword.toLowerCase();
+      filteredData = [tableData[0]]; // header
+      for (let i = 1; i < tableData.length; i++) {
+        const row = tableData[i];
+        if (!row) continue;
+        // Semua kolom tetap searchable (termasuk hidden)
+        if (row.some(cell => (cell || '').toLowerCase().includes(keyword))) {
+          filteredData.push(row);
+        }
+      }
+    }
+
+    // Event: search
+    document.getElementById('search').addEventListener('input', function() {
+      filterData(this.value);
+      currentPage = 1;
+      renderTable();
+    });
+
+    // Ambil & parsing CSV
+    fetch(csvUrl)
+      .then(res => res.text())
       .then(csvText => {
         Papa.parse(csvText, {
-          header: false,
           complete: function(results) {
-            const rows = results.data;
-            const table = document.getElementById('csvTable');
-            table.innerHTML = '';
-            
-            // Buat header
-            if (rows.length > 0) {
-              const thead = document.createElement('thead');
-              const headerRow = document.createElement('tr');
-              rows[0].forEach(cell => {
-                const th = document.createElement('th');
-                th.textContent = cell;
-                headerRow.appendChild(th);
-              });
-              thead.appendChild(headerRow);
-              table.appendChild(thead);
-            }
-            
-            // Buat body
-            const tbody = document.createElement('tbody');
-            for (let i = 1; i < rows.length; i++) {
-              // PapaParse bisa return row kosong di akhir, skip jika semua kolom kosong
-              if (rows[i].every(cell => cell === "")) continue;
-              const tr = document.createElement('tr');
-              rows[i].forEach(cell => {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                tr.appendChild(td);
-              });
-              tbody.appendChild(tr);
-            }
-            table.appendChild(tbody);
+            tableData = results.data.filter(row => row.length > 1 && row.some(cell => cell !== ""));
+            filteredData = tableData.slice();
+            renderTable();
           }
         });
       });
