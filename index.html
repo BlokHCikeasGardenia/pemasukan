@@ -8,76 +8,93 @@
     body {
       font-family: Arial, sans-serif;
       background: #f0fcfc;
+      font-size: 12px;
+      padding: 10px;
     }
-    h3 {
-      color:#009688;
-      margin-bottom: 0.5em;
-      margin-top: 1em;
+    h2 {
+      text-align: center;
+      color: #009688;
+      font-size: 1.35rem;
+      margin-bottom: 1em;
     }
-    .search-bar {
-      margin-bottom: 8px;
+    .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
+      margin-bottom: 10px;
+      justify-content: center;
     }
-    .search-bar input, .search-bar select {
+    .filters label {
+      font-size: 13px;
+      margin-right: 2px;
+      white-space: nowrap;
+      color: #00897b;
+    }
+    .filters input, .filters select {
       font-size: 12px;
       padding: 3px 6px;
       border: 1px solid #64b5b7;
-      border-radius: 2px;
+      border-radius: 3px;
       background: #e6f8f8;
+      min-width: 0;
+      width: auto;
+      box-sizing: border-box;
     }
-    .search-bar label {
-      font-size: 12px;
-      color: #00695c;
+    .total-row-info {
+      text-align: right;
+      color: #00897b;
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: -2px;
+      margin-bottom: 6px;
+      margin-right: 6px;
     }
     .table-container {
       overflow-x: auto;
-      max-width: 100vw;
+      overflow-y: auto;
       background: #e6f8f8;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(100,181,183,0.08);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(100,181,183,0.07);
       margin-bottom: 12px;
-      /* For sticky header to work: set relative position and max-height */
-      position: relative;
-      max-height: 400px;
+      /* Responsive max-height: 70vh desktop, 50vh tablet, 38vh mobile */
+      max-height: 70vh;
+      transition: max-height 0.2s;
     }
     table {
-      border-collapse: separate;
-      border-spacing: 0;
+      border-collapse: collapse;
       width: 100%;
-      min-width: 600px;
       background: #e6f8f8;
-      font-size: 12px;
-      color: #222;
-      margin: 0;
+      min-width: 600px;
+      font-size: 11.5px;
     }
     th, td {
       border: 1px solid #b2dfdb;
       padding: 6px 8px;
-      text-align: left;
+      background: inherit;
+      white-space: nowrap;
+      box-sizing: border-box;
     }
     th {
       background: #7be3e6;
       color: #00695c;
-      cursor: pointer;
-      user-select: none;
-      font-size: 13px;
       position: sticky;
       top: 0;
       z-index: 2;
-      border-bottom: 2px solid #64b5b7;
+      user-select: none;
+    }
+    th.sortable {
+      cursor: pointer;
     }
     .sort-icon {
       font-size: 12px;
-      margin-left: 4px;
-      color: #ff9800; /* Orange for contrast */
+      margin-left: 3px;
+      color: #ff9800;
       vertical-align: middle;
       font-weight: bold;
     }
     .sort-icon.inactive {
-      color: #bdbdbd; /* Grey for inactive */
+      color: #bdbdbd;
       font-weight: normal;
     }
     .hidden-col {
@@ -90,48 +107,63 @@
       background-color: #e6f8f8;
     }
     .pagination {
-      margin-top: 8px;
-      text-align: right;
+      margin-top: 6px;
       font-size: 12px;
-      color: #00796b;
+      text-align: center;
+      user-select: none;
     }
     .pagination button {
-      background: #7be3e6;
-      color: #00695c;
-      border: none;
-      margin: 0 2px;
-      padding: 2px 8px;
-      border-radius: 2px;
-      cursor: pointer;
+      margin-right: 2px;
+      padding: 4px 8px;
       font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #64b5b7;
+      background: #fff;
+      color: #009688;
+      cursor: pointer;
       transition: background 0.2s;
     }
-    .pagination button.active {
-      background: #4ed9df;
-      color: #004d40;
-    }
+    .pagination button.active,
     .pagination button:disabled {
-      background: #b2dfdb;
-      color: #888;
-      cursor: not-allowed;
+      background: #7be3e6;
+      color: #004d40;
+      cursor: default;
+      font-weight: bold;
+    }
+    .pagination .ellipsis {
+      margin: 0 4px;
+      color: #009688;
+      font-weight: bold;
+      font-size: 14px;
+      pointer-events: none;
+      background: none;
+      border: none;
+    }
+    @media (max-width: 1024px) {
+      .table-container {
+        max-height: 50vh;
+      }
     }
     @media (max-width: 700px) {
       .table-container {
-        min-width: 0;
-        border-radius: 0;
-        box-shadow: none;
-        max-height: 270px;
+        max-height: 38vh;
       }
       table {
-        font-size: 11px;
-        min-width: 400px;
+        font-size: 10.5px;
+        min-width: 350px;
       }
-      .search-bar input, .search-bar select {
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        max-width: 98vw;
+      }
+      .filters input, .filters select {
         width: 98vw;
         margin-bottom: 6px;
       }
-      .pagination {
-        font-size: 11px;
+      .total-row-info {
+        font-size: 12px;
       }
     }
     @media (max-width: 450px) {
@@ -142,18 +174,18 @@
       th, td {
         padding: 4px 4px;
       }
-    }
-    th {
-      -webkit-backdrop-filter: blur(0);
-      backdrop-filter: blur(0);
+      .filters input, .filters select {
+        font-size: 11px;
+        padding: 3px 4px;
+      }
     }
   </style>
 </head>
 <body>
-  <h3>Pemasukan</h3>
-  <div class="search-bar">
-    <input type="text" id="search" placeholder="Cari di semua kolom...">
-    <label for="rowsPerPage">Baris/hal:</label>
+  <h2>Pemasukan</h2>
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Cari di semua kolom...">
+    <label for="rowsPerPage">Baris/halaman:</label>
     <select id="rowsPerPage">
       <option value="5">5</option>
       <option value="8" selected>8</option>
@@ -163,19 +195,22 @@
       <option value="50">50</option>
     </select>
   </div>
+  <div class="total-row-info" id="totalRowInfo"></div>
   <div class="table-container">
-    <table id="csvTable"></table>
+    <table id="mainTable"></table>
   </div>
   <div class="pagination" id="pagination"></div>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    // Konfigurasi
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQBSWp7dBKus6wO8G-vBtSW9ZpKlRbmNLbXsaWQZeaQU_ZEY9p9EujIGTyIPVzb5cgVTlq9d0Lf29P/pub?gid=1413460683&single=true&output=csv";
     let rowsPerPage = 8;
     let tableData = [], filteredData = [], sortCol = null, sortDir = 1, currentPage = 1;
 
+    const sortableCols = [1,4,5];
+    const hiddenCols = [0,7];
+
     function renderTable() {
-      const table = document.getElementById('csvTable');
+      const table = document.getElementById('mainTable');
       table.innerHTML = '';
       if (!filteredData.length) return;
 
@@ -184,28 +219,21 @@
       const headRow = document.createElement('tr');
       filteredData[0].forEach((cell, i) => {
         const th = document.createElement('th');
-        // Kolom sort hanya index 1 (ke-2), 4 (ke-5), 5 (ke-6)
-        let sortable = [1,4,5].includes(i);
         th.textContent = cell;
-        if (sortable) {
-          th.style.userSelect = "none";
+        if (sortableCols.includes(i)) {
+          th.classList.add('sortable');
           th.onclick = () => sortTable(i);
-          th.title = "Klik untuk sort";
-          let upClass = "sort-icon inactive";
-          let downClass = "sort-icon inactive";
-          if (sortCol === i && sortDir === 1) upClass = "sort-icon";
-          if (sortCol === i && sortDir === -1) downClass = "sort-icon";
+          th.title = "Klik untuk urutkan";
           const up = document.createElement('span');
-          up.className = upClass;
+          up.className = "sort-icon" + ((sortCol === i && sortDir === 1) ? "" : " inactive");
           up.innerHTML = "▲";
           const down = document.createElement('span');
-          down.className = downClass;
+          down.className = "sort-icon" + ((sortCol === i && sortDir === -1) ? "" : " inactive");
           down.innerHTML = "▼";
           th.appendChild(up);
           th.appendChild(down);
         }
-        // Sembunyikan kolom ke-1 (0) dan ke-8 (7)
-        if (i === 0 || i === 7) th.classList.add('hidden-col');
+        if (hiddenCols.includes(i)) th.classList.add('hidden-col');
         headRow.appendChild(th);
       });
       thead.appendChild(headRow);
@@ -213,8 +241,7 @@
 
       // Body
       const tbody = document.createElement('tbody');
-      // Pagination
-      const startIdx = (currentPage - 1) * rowsPerPage + 1; // +1 karena header
+      const startIdx = (currentPage - 1) * rowsPerPage + 1;
       const endIdx = Math.min(startIdx + rowsPerPage - 1, filteredData.length -1);
       for (let i = startIdx; i <= endIdx; i++) {
         const row = filteredData[i];
@@ -223,7 +250,7 @@
         row.forEach((cell, j) => {
           const td = document.createElement('td');
           td.textContent = cell;
-          if (j === 0 || j === 7) td.classList.add('hidden-col');
+          if (hiddenCols.includes(j)) td.classList.add('hidden-col');
           tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -231,30 +258,74 @@
       table.appendChild(tbody);
 
       renderPagination();
+      renderTotalRowInfo();
     }
 
     function renderPagination() {
-      const totalRows = filteredData.length - 1; // header tidak dihitung
+      const totalRows = filteredData.length - 1;
       const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
       const pag = document.getElementById('pagination');
       pag.innerHTML = '';
       if (totalPages <= 1) return;
-      // Tombol prev
+
+      // Prev button
       const prevBtn = document.createElement('button');
       prevBtn.textContent = "Prev";
       prevBtn.disabled = currentPage === 1;
       prevBtn.onclick = () => { currentPage--; renderTable(); };
       pag.appendChild(prevBtn);
 
-      // Tombol halaman
-      for (let i = 1; i <= totalPages; i++) {
+      // Page number buttons (max 5 numbers shown, with ellipsis)
+      let pageList = [];
+      if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) pageList.push(i);
+      } else {
+        if (currentPage <= 3) {
+          pageList = [1, 2, 3, 4, 5];
+        } else if (currentPage >= totalPages - 2) {
+          pageList = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } else {
+          pageList = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+        }
+      }
+
+      if (pageList[0] > 1) {
+        const btn1 = document.createElement('button');
+        btn1.textContent = 1;
+        btn1.onclick = () => { currentPage = 1; renderTable(); };
+        pag.appendChild(btn1);
+        if (pageList[0] > 2) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = "ellipsis";
+          ellipsis.textContent = "...";
+          pag.appendChild(ellipsis);
+        }
+      }
+
+      pageList.forEach(i => {
+        if (i < 1 || i > totalPages) return;
         const btn = document.createElement('button');
         btn.textContent = i;
         if (i === currentPage) btn.classList.add('active');
+        btn.disabled = i === currentPage;
         btn.onclick = () => { currentPage = i; renderTable(); };
         pag.appendChild(btn);
+      });
+
+      if (pageList[pageList.length - 1] < totalPages) {
+        if (pageList[pageList.length - 1] < totalPages - 1) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = "ellipsis";
+          ellipsis.textContent = "...";
+          pag.appendChild(ellipsis);
+        }
+        const btnLast = document.createElement('button');
+        btnLast.textContent = totalPages;
+        btnLast.onclick = () => { currentPage = totalPages; renderTable(); };
+        pag.appendChild(btnLast);
       }
-      // Tombol next
+
+      // Next button
       const nextBtn = document.createElement('button');
       nextBtn.textContent = "Next";
       nextBtn.disabled = currentPage === totalPages;
@@ -262,15 +333,19 @@
       pag.appendChild(nextBtn);
     }
 
+    function renderTotalRowInfo() {
+      const info = document.getElementById('totalRowInfo');
+      const totalRows = filteredData.length - 1;
+      info.textContent = `Total baris: ${totalRows}`;
+    }
+
     function sortTable(colIdx) {
-      // Sort pada body data (tanpa header)
       if (sortCol === colIdx) sortDir *= -1;
       else { sortCol = colIdx; sortDir = 1; }
       filteredData = [filteredData[0]].concat(
         filteredData.slice(1).sort((a, b) => {
           let x = a[colIdx] || '', y = b[colIdx] || '';
-          // Coba sort numerik jika mungkin
-          let nx = parseFloat(x), ny = parseFloat(y);
+          let nx = parseFloat(x.replace(/[^0-9.-]/g, '')), ny = parseFloat(y.replace(/[^0-9.-]/g, ''));
           if (!isNaN(nx) && !isNaN(ny)) return (nx - ny) * sortDir;
           return x.localeCompare(y, 'id', {sensitivity:'base'}) * sortDir;
         })
@@ -281,19 +356,17 @@
 
     function filterData(keyword) {
       keyword = keyword.toLowerCase();
-      filteredData = [tableData[0]]; // header
+      filteredData = [tableData[0]];
       for (let i = 1; i < tableData.length; i++) {
         const row = tableData[i];
         if (!row) continue;
-        // Semua kolom tetap searchable (termasuk hidden)
         if (row.some(cell => (cell || '').toLowerCase().includes(keyword))) {
           filteredData.push(row);
         }
       }
     }
 
-    // Event: search
-    document.getElementById('search').addEventListener('input', function() {
+    document.getElementById('searchInput').addEventListener('input', function() {
       filterData(this.value);
       currentPage = 1;
       renderTable();
@@ -305,7 +378,6 @@
       renderTable();
     });
 
-    // Ambil & parsing CSV
     fetch(csvUrl)
       .then(res => res.text())
       .then(csvText => {
