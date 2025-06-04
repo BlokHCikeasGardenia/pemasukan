@@ -52,14 +52,12 @@
     }
     .table-container {
       overflow-x: auto;
-      overflow-y: auto;
+      /* overflow-y dihapus agar scroll mengikuti window */
       background: #e6f8f8;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(100,181,183,0.07);
       margin-bottom: 12px;
-      /* Responsive max-height: 70vh desktop, 50vh tablet, 38vh mobile */
-      max-height: 70vh;
-      transition: max-height 0.2s;
+      max-width: 100vw;
     }
     table {
       border-collapse: collapse;
@@ -80,8 +78,10 @@
       color: #00695c;
       position: sticky;
       top: 0;
-      z-index: 2;
+      z-index: 10;
       user-select: none;
+      /* Untuk efek shadow saat sticky */
+      box-shadow: 0 2px 6px -3px #888;
     }
     th.sortable {
       cursor: pointer;
@@ -140,14 +140,15 @@
       border: none;
     }
     @media (max-width: 1024px) {
-      .table-container {
-        max-height: 50vh;
+      table {
+        font-size: 10.5px;
+        min-width: 350px;
+      }
+      .total-row-info {
+        font-size: 12px;
       }
     }
     @media (max-width: 700px) {
-      .table-container {
-        max-height: 38vh;
-      }
       table {
         font-size: 10.5px;
         min-width: 350px;
