@@ -80,7 +80,6 @@
       top: 0;
       z-index: 10;
       user-select: none;
-      /* Untuk efek shadow saat sticky */
       box-shadow: 0 2px 6px -3px #888;
     }
     th.sortable {
@@ -210,6 +209,34 @@
     const sortableCols = [1,4,5];
     const hiddenCols = [0,7];
 
+    function sortTable(colIdx) {
+      if (sortCol === colIdx) sortDir *= -1;
+      else { sortCol = colIdx; sortDir = 1; }
+
+      const isTanggal = (colIdx === 1); // kolom ke-2 (index 1) adalah Tanggal
+      filteredData = [filteredData[0]].concat(
+        filteredData.slice(1).sort((a, b) => {
+          let x = a[colIdx] || '', y = b[colIdx] || '';
+          if (isTanggal) {
+            // Parsing tanggal format DD/MM/YYYY atau D/M/YYYY
+            const parseDate = t => {
+              const [d, m, y] = (t || '').split(/[\/\-]/).map(Number);
+              if (!d || !m || !y) return 0;
+              return new Date(y, m - 1, d).getTime();
+            };
+            let dx = parseDate(x), dy = parseDate(y);
+            return (dx - dy) * sortDir;
+          }
+          // Coba sort numerik jika memungkinkan
+          let nx = parseFloat(x.replace(/[^0-9.-]/g, '')), ny = parseFloat(y.replace(/[^0-9.-]/g, ''));
+          if (!isNaN(nx) && !isNaN(ny)) return (nx - ny) * sortDir;
+          return x.localeCompare(y, 'id', {sensitivity:'base'}) * sortDir;
+        })
+      );
+      currentPage = 1;
+      renderTable();
+    }
+
     function renderTable() {
       const table = document.getElementById('mainTable');
       table.innerHTML = '';
@@ -338,21 +365,6 @@
       const info = document.getElementById('totalRowInfo');
       const totalRows = filteredData.length - 1;
       info.textContent = `Total baris: ${totalRows}`;
-    }
-
-    function sortTable(colIdx) {
-      if (sortCol === colIdx) sortDir *= -1;
-      else { sortCol = colIdx; sortDir = 1; }
-      filteredData = [filteredData[0]].concat(
-        filteredData.slice(1).sort((a, b) => {
-          let x = a[colIdx] || '', y = b[colIdx] || '';
-          let nx = parseFloat(x.replace(/[^0-9.-]/g, '')), ny = parseFloat(y.replace(/[^0-9.-]/g, ''));
-          if (!isNaN(nx) && !isNaN(ny)) return (nx - ny) * sortDir;
-          return x.localeCompare(y, 'id', {sensitivity:'base'}) * sortDir;
-        })
-      );
-      currentPage = 1;
-      renderTable();
     }
 
     function filterData(keyword) {
